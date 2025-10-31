@@ -3,19 +3,33 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
     public GameObject finish;
     public GameObject start;
     public Image[] haerts;
-    public Image[] haerts2;
+    public TextMeshProUGUI snowmantext;
     public Sprite ret, blak;
+    public int currentlvl;
+    public int snowman;
+    public int maxhaertslivy = 6;
     public int livy = 3;
     void Start()
     {
+        currentlvl = SceneManager.GetActiveScene().buildIndex;
         finish.SetActive(false);
         start.SetActive(true);
+        if(currentlvl == 0)
+        {
+            snowman = 0;
+        }
+        else
+        {
+            snowman = PlayerPrefs.GetInt("snowman", 0);
+        }
+        SnowmanTextUpdate();
         UpdateLifePanel();
     }
 
@@ -30,16 +44,21 @@ public class GameManager : MonoBehaviour
         finish.SetActive(false);
     }
 
+    public void SnowmanTextUpdate()
+    {
+        snowmantext.text = " :    " + snowman.ToString();
+    }
+
     public void RestartLvll()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);   
     }
     void NextLvl()
     {
-        int currentlvl = SceneManager.GetActiveScene().buildIndex;
+        PlayerPrefs.SetInt("snowman", snowman);
+        PlayerPrefs.Save();
         SceneManager.LoadScene(currentlvl + 1);
     }
-
 
     void Update()
     {

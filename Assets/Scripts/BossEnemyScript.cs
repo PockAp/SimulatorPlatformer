@@ -7,6 +7,8 @@ public class BossEnemyScript : MonoBehaviour
 {
     public float speed = 2f;
     public Transform a, b, c;
+    private bool iseating;
+    public GameObject keyinboss;
     private SpriteRenderer sr;
     [SerializeField] private int enemylive = 4;
     public Slider sliderfod;
@@ -17,6 +19,7 @@ public class BossEnemyScript : MonoBehaviour
 
     void Start()
     {
+        keyinboss.gameObject.SetActive(false);
         transform.position = a.position;
         rb2d = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
@@ -25,17 +28,10 @@ public class BossEnemyScript : MonoBehaviour
 
     void Update()
     {
-        transform.position = Vector3.MoveTowards(transform.position, b.position, speed * Time.deltaTime);
-        if (Vector3.Distance(transform.position, b.position) < 0.1f)
+        Patrol();
+        if (enemylive == 1 || iseating)
         {
-            Transform temp = b;
-            b = a;
-            a = temp;
-            sr.flipX = !sr.flipX;
-        }
-        if (enemylive == 1)
-        {
-            transform.position = Vector3.MoveTowards(transform.position, c.position, speed * 2 * Time.deltaTime);
+            EatGoing();
         }
     }
 
@@ -44,6 +40,7 @@ public class BossEnemyScript : MonoBehaviour
         if (collision.gameObject.CompareTag("Player"))
         {
             gamemanager.livy--;
+            gamemanager.UpdateLifePanel();
         }
     }
 
@@ -56,6 +53,7 @@ public class BossEnemyScript : MonoBehaviour
             if (enemylive <= 0)
             {
                 rb2d.bodyType = RigidbodyType2D.Dynamic;
+                keyinboss.gameObject.SetActive(true);
                 c2d.enabled = false;
             }
         }
@@ -65,21 +63,37 @@ public class BossEnemyScript : MonoBehaviour
         }
         if (collision.gameObject.CompareTag("enemyfood"))
         {
-            enemylive = 4;
+            sliderfod.value = 4;
             StartCoroutine(Fixiki());
-            if(enemylive == 4)
-            {
-                StopCoroutine(Fixiki());
-            }
+        }
+    }
+
+    void EatGoing()
+    {
+        transform.position = Vector3.MoveTowards(transform.position, c.position, speed * 2 * Time.deltaTime);
+    }
+
+    void Patrol()
+    {
+        transform.position = Vector3.MoveTowards(transform.position, b.position, speed * Time.deltaTime);
+        if (Vector3.Distance(transform.position, b.position) < 0.1f)
+        {
+            Transform temp = b;
+            b = a;
+            a = temp;
+            sr.flipX = !sr.flipX;
         }
     }
     IEnumerator Fixiki()
     {
-        while(enemylive < 4)
+        iseating = true;
+        while (enemylive < 4)
         {
-            yield return new WaitForSeconds(3);
-            sliderfod.value = 4 - enemylive;
+            enemylive++;
             slimy.value = enemylive;
+            sliderfod.value = 4 - enemylive;
+            yield return new WaitForSeconds(2);
         }
+        iseating = false;
     }
 }

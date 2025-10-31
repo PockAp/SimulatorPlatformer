@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class Player : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class Player : MonoBehaviour
     public float speed = 2f;
     public float jumpforce = 4f;
     public bool haskey = false;
+    public bool isclimbing = false;
     public GameObject groundcheck;
     public GameObject keypicture;
     private Animator animator;
@@ -91,7 +93,10 @@ public class Player : MonoBehaviour
         }
         if (other.CompareTag("FruitHealth"))
         {
-            manager.livy++;
+            if(manager.livy < manager.maxhaertslivy)
+            {
+                manager.livy++;
+            }
             Destroy(other.gameObject);
             manager.UpdateLifePanel();
         }
@@ -101,7 +106,46 @@ public class Player : MonoBehaviour
             Destroy(other.gameObject);
             manager.UpdateLifePanel();
         }
+        if (other.CompareTag("Stairs"))
+        {
+            rb.gravityScale = 0;
+            isclimbing = true;
+        }
+        if (other.CompareTag("TeleportTag"))
+        {
+            TeleportScript teleportscript = other.gameObject.GetComponent<TeleportScript>();
+            if (!teleportscript.isteleporting)
+            {
+                teleportscript.Unlock();
+                teleportscript.Teleporting(gameObject);
+            }
+        }
+        if (other.CompareTag("SnowmanCollection"))
+        {
+            manager.snowman++;
+            manager.SnowmanTextUpdate();
+            Destroy(other.gameObject);
+        }
     }
+
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (other.CompareTag("Stairs") && isclimbing)
+        {
+            float vertical = Input.GetAxis("Vertical");
+            transform.Translate(Vector2.up * speed * vertical * Time.deltaTime);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Stairs"))
+        {
+            rb.gravityScale = 1;
+            isclimbing = false;
+        }
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("SpikeTag"))
